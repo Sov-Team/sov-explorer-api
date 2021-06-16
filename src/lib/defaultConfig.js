@@ -82,6 +82,7 @@ export default {
     InternalTransactions: 'internalTransactions',
     Balances: 'balances',
     BalancesLog: 'balancesLog',
-    BlocksTraces: 'blockTraces'
+    BlocksTraces: 'blockTraces',
+    Prices: 'prices'
   }
 }

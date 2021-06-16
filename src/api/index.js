@@ -3,6 +3,7 @@ import { setup } from '../lib/dataSource'
 import Api from './Api'
 import Status from './Status'
 import TxPool from './TxPool'
+import Prices from './Prices'
 import log from './lib/log'
 import UserEventsApi from './UserEventsApi'
 import config from '../lib/config'
@@ -21,9 +22,11 @@ setup({ log, skipCheck: true }).then(({ db, initConfig }) => {
   const api = new Api({ db, initConfig }, config.api)
   const status = new Status(db)
   const txPool = new TxPool(db)
+  const prices = new Prices(db)
   api.start()
   status.start()
   txPool.start()
+  prices.start()
 
   let userEvents
 
