@@ -343,5 +343,14 @@ export default {
         name: 'blockTracesHashIndex'
       }
     ]
+  },
+  Prices: {
+    indexes: [
+      {
+        key: { pair: 1 },
+        unique: true,
+        name: 'pricesPairIndex'
+      }
+    ]
   }
 }
