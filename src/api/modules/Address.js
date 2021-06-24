@@ -1,6 +1,5 @@
 import { DataCollectorItem } from '../lib/DataCollector'
 import { tokensInterfaces, addrTypes, fields } from '../../lib/types'
-import { newBigNumber } from '../../lib/utils'
 
 export class Address extends DataCollectorItem {
   constructor ({ Addrs }, name) {
@@ -44,10 +43,6 @@ export class Address extends DataCollectorItem {
               .run('isVerified', { address, match: true })
             if (verified) data.verification = verified.data
           }
-          // Retrieve balance usd value
-          const price = await this.parent.collections.Prices.findOne({pair: 'rbtc/usd'})
-          data.balanceUsd = price ? newBigNumber(data.balance).multipliedBy(price.value) : 0
-          aData.data = data
         }
         return aData
       },
@@ -79,14 +74,9 @@ export class Address extends DataCollectorItem {
        *          $ref: '#/responses/NotFound'
        */
       getAddresses: async params => {
-        const price = await this.parent.collections.Prices.findOne({pair: 'rbtc/usd'})
         let type = (params.query) ? params.query.type : null
         let query = (type) ? { type } : {}
-        const pageData = await this.getPageData(query, params)
-        pageData.data.forEach(addr => {
-          addr.balanceUsd = price ? newBigNumber(addr.balance).multipliedBy(price.value) : 0
-        })
-        return pageData
+        return this.getPageData(query, params)
       },
       /**
        * @swagger
