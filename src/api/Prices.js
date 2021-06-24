@@ -9,37 +9,40 @@ export class Prices extends DataCollector {
   constructor (db) {
     super(db, { collectionName })
     this.tickDelay = 5000
-    this.state = {}
+    this.state = {
+      'rbtc/usd': 0
+    }
   }
 
   start () {
     super.start()
-    this.updateState()
+    this.getLastPrices().then(prices => this.updateState(prices))
   }
 
   tick () {
-    this.updateState()
+    this.updatePrices().then(prices => this.updateState(prices)).then((newState) => {
+      if (newState) {
+        this.events.emit('newPrices', this.formatData(newState))
+      }
+    })
   }
 
-  getLastPrices () {
-    return this.collection.findOne({}, { sort: { _id: -1 } })
-      .then(res => {
-        res = res.data[0]
-        if (res) delete (res._id)
-        return res
-      })
+  getState () {
+    return this.formatData(this.state)
   }
 
-  async updateState () {
+  async getLastPrices () {
+    const prices = {}
+    const btcPrice = await this.collection.findOne({ pair: 'rbtc/usd' }, { sort: { _id: -1 } })
+    prices['rbtc/usd'] = btcPrice ? btcPrice.value : 0
+  }
+
+  async updateState (prices) {
     try {
-      let prices = await this.updatePrices()
       prices = prices || {}
       let state = this.state
       let changed = Object.keys(prices).find(k => prices[k] !== state[k])
       if (changed) {
-        let prevState = Object.assign({}, this.state)
-        delete prevState.prevState
-        prices.prevState = prevState
         this.state = prices
         return prices
       }
