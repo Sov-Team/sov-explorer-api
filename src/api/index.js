@@ -72,7 +72,7 @@ setup({ log, skipCheck: true }).then(({ db, initConfig }) => {
 
   // create channels
   const channels = createChannels(io)
-  const { blocksChannel, statusChannel, txPoolChannel, statsChannel, txsChannel, balancesChannel } = channels.channels
+  const { blocksChannel, statusChannel, txPoolChannel, statsChannel, txsChannel, balancesChannel, pricesChannel } = channels.channels
 
   // send blocks on join
   blocksChannel.on('join', socket => {
@@ -129,6 +129,16 @@ setup({ log, skipCheck: true }).then(({ db, initConfig }) => {
   // send balances status on join
   balancesChannel.on('join', socket => {
     socket.emit('data', formatRes({ action: 'balancesStatus', result: api.getBalancesStatus() }))
+  })
+
+  // send last prices on join
+  pricesChannel.on('join', async socket => {
+    socket.emit('data', formatRes({ action: 'newPrices', result: prices.getState() }))
+  })
+
+  // send status to channel
+  prices.events.on('newPrices', result => {
+    pricesChannel.emit('newPrices', formatRes({ action: 'newPrices', result }))
   })
 
   io.on('connection', socket => {

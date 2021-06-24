@@ -7,7 +7,8 @@ export const CHANNELS = {
   statusChannel: 'status',
   txPoolChannel: 'txpool',
   statsChannel: 'stats',
-  balancesChannel: 'balances'
+  balancesChannel: 'balances',
+  pricesChannel: 'prices'
 }
 
 export const createChannels = io => {
