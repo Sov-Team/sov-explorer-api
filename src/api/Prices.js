@@ -5,12 +5,21 @@ import config from '../lib/config'
 
 const collectionName = config.collectionsNames.Prices
 
+const priceList = [
+  {from: 'bitcoin', to: 'usd', pairs: ['rbtc/usd', 'wrbtc/usd']},
+  {from: 'ethereum', to: 'usd', pairs: ['eths/usd']},
+  {from: 'rif-token', to: 'usd', pairs: ['rif/usd']},
+  {from: 'binancecoin', to: 'usd', pairs: ['bnbs/usd']},
+  {from: 'sovryn', to: 'usd', pairs: ['sov/usd']},
+  // use usdt value for DoC and xusd as they are not listed on coingecko
+  {from: 'tether', to: 'usd', pairs: ['rusdt/usd', 'xusd/usd', 'doc/usd']}
+]
+
 export class Prices extends DataCollector {
   constructor (db) {
     super(db, { collectionName })
-    this.tickDelay = 5000
+    this.tickDelay = 30000
     this.state = {
-      'rbtc/usd': 0
     }
   }
 
@@ -33,8 +42,15 @@ export class Prices extends DataCollector {
 
   async getLastPrices () {
     const prices = {}
-    const btcPrice = await this.collection.findOne({ pair: 'rbtc/usd' }, { sort: { _id: -1 } })
-    prices['rbtc/usd'] = btcPrice ? btcPrice.value : 0
+    const pairs = priceList.reduce((acc, value) => {
+      acc.push(...value.pairs)
+      return acc
+    }, [])
+    const lastPrices = await Promise.all(pairs.map(pair => this.collection.findOne({ pair }, { sort: { _id: -1 } })))
+    lastPrices.forEach((price) => {
+      if (price) prices[price.pair] = price.value
+    })
+    return prices
   }
 
   async updateState (prices) {
@@ -69,20 +85,24 @@ export class Prices extends DataCollector {
   }
 
   async updatePrices () {
-    try {
-      const prices = {}
-      const btcPrice = await this._callPriceApi('bitcoin', 'usd')
-      const priceData = {
-        pair: 'rbtc/usd',
-        value: btcPrice.bitcoin.usd,
-        date: new Date()
+    const prices = {}
+    for (let pricePair of priceList) {
+      try {
+        const price = await this._callPriceApi(pricePair.from, pricePair.to)
+        await Promise.all(pricePair.pairs.map(pair => {
+          const priceData = {
+            pair,
+            value: price[pricePair.from][pricePair.to],
+            date: new Date()
+          }
+          prices[pair] = priceData.value
+          return this.collection.updateOne({ pair: priceData.pair }, { $set: priceData }, { upsert: true })
+        }))
+      } catch (err) {
+        return Promise.reject(err)
       }
-      await this.collection.updateOne({ pair: priceData.pair }, { $set: priceData }, { upsert: true })
-      prices[priceData.pair] = priceData.value
-      return prices
-    } catch (err) {
-      return Promise.reject(err)
     }
+    return prices
   }
 }
 
