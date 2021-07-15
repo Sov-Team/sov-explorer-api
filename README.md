@@ -1,5 +1,11 @@
 # Sovryn RSK explorer API
 
+## Sovrython Presentation Slides
+
+Sovryn RSK Explorer has been developped for Sovrython.
+
+Please check project our [submission presentation slides](https://docs.google.com/presentation/d/e/2PACX-1vROnWX2s_TMBGtNRx_oPDXR6xKXIbuRzSd9gkiQBfgJyKGyYoJshWSTut3v2E4pcvLSMKagbCNLlY5s/pub?start=false&loop=false&delayms=30000&slide=id.ge2e28a2853_0_290)
+
 ## Description
   
   Sovryn RSK explorer API is an enhanced fork of [RSK explorer](https://github.com/rsksmart/rsk-explorer-api)
